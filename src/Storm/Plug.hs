@@ -119,6 +119,15 @@ storm (Just i, "stormpaths", v) = do
               getArgInt i v d = case v ^? ( (nth i) . _Integer) of 
                   Just b -> (fromInteger b)   
                   Nothing -> d 
+storm (Just i, "stormchannels", v) = do
+    h <- lift ask
+    Just (Correct (Res w _)) <- liftIO $ listfunds h
+    yield $ Res (prettyBalances $ (channels :: ListFunds -> [LFChannel]) w) i 
+        where prettyBalances :: [LFChannel] -> Value  
+              prettyBalances l = object $ [ "balances" .= map prettyString l] 
+              prettyString :: LFChannel -> String
+              prettyString = undefined 
+
 storm x = logy "unhandled" >> logy x 
 
 manifest :: Value
@@ -129,6 +138,7 @@ manifest = object [
         , RpcMethod "stormload" "" "Load into memory (deprecating)" Nothing False  
         , RpcMethod "stormnetwork" "" "network summary info" Nothing False  
         , RpcMethod "stormpaths" "[n1, n2, a, p]" "Find p paths from n1 to n2 of amount a" Nothing False
+        , RpcMethod "stormchannels" "" "Pretty print channel balances" Nothing False
         -- , RpcMethod "stormrebalance" "" "rebalance attempts !!WARN!! possble 89 sat" Nothing False 
         ]),
     "options" .= ([]::[Option]),
